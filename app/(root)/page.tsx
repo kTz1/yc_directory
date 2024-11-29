@@ -1,6 +1,6 @@
 import SearchForm from "@/components/SearchForm";
 import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
-import { client } from "@/sanity/lib/client";
+import { sanityFetch, SanityLive } from "@/sanity/lib/live";
 import { STARTUPS_QUERY } from "@/sanity/lib/queries";
 
 export default async function Home({
@@ -8,10 +8,12 @@ export default async function Home({
 }: {
   searchParams: Promise<{ query?: string }>;
 }) {
+  // real-time search using query params
   const query = (await searchParams).query;
+  const params = { search: query || null };
 
-  // fetch posts from sanity
-  const posts = await client.fetch(STARTUPS_QUERY);
+  // fetch posts from sanity - revalidate when never new changes are made
+  const { data: posts } = await sanityFetch({ query: STARTUPS_QUERY, params });
 
   return (
     <>
@@ -44,6 +46,8 @@ export default async function Home({
           )}
         </ul>
       </section>
+
+      <SanityLive />
     </>
   );
 }
