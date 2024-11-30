@@ -16,6 +16,7 @@ export const STARTUPS_QUERY =
   image
 }`);
 
+// fetch startup based on the provided id
 export const STARTUP_BY_ID_QUERY =
   defineQuery(`*[_type=="startup" && _id == $id][0]{
   _id, 
@@ -23,11 +24,17 @@ export const STARTUP_BY_ID_QUERY =
   slug, 
   _createdAt,
   author -> {
-    _id, name, image, bio
+    _id, name, username, image, bio
   },
   views,
   description,
   category,
   image,
   pitch
+}`);
+
+// fetch views based on the provided id
+export const STARTUP_VIEWS_QUERY =
+  defineQuery(`*[_type == "startup" && _id == $id][0]{
+  _id, views
 }`);
