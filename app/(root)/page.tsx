@@ -2,6 +2,7 @@ import SearchForm from "@/components/SearchForm";
 import StartupCard, { StartupTypeCard } from "@/components/StartupCard";
 import { sanityFetch, SanityLive } from "@/sanity/lib/live";
 import { STARTUPS_QUERY } from "@/sanity/lib/queries";
+import { auth } from "@/auth";
 
 export default async function Home({
   searchParams,
@@ -11,6 +12,9 @@ export default async function Home({
   // real-time search using query params
   const query = (await searchParams).query;
   const params = { search: query || null };
+
+  // extract sanity id from the author for that user
+  const session = await auth();
 
   // fetch posts from sanity - revalidate when never new changes are made
   const { data: posts } = await sanityFetch({ query: STARTUPS_QUERY, params });
