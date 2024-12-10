@@ -1,18 +1,82 @@
 "use client";
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import MDEditor from "@uiw/react-md-editor";
 import { Send } from "lucide-react";
+import { formSchema } from "@/lib/validation";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const StartupForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pitch, setPitch] = useState("");
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const isPending = false;
+  // submitting form
+  const handleFormSubmit = async (prevState: any, formData: FormData) => {
+    try {
+      // get access to the form values
+      const formValues = {
+        title: formData.get("title") as string,
+        description: formData.get("description") as string,
+        category: formData.get("category") as string,
+        link: formData.get("link") as string,
+        pitch,
+      };
+      // validate form values
+      await formSchema.parseAsync(formValues);
+      console.log(formValues);
+      // const result = await createIdea(prevState, formDate, pitch)
+      //console.log(result);
+
+      //if (result.status === "SUCCESS") {
+      //  toast({
+      //    title: "Success",
+      //    description: "Your startup pitch has created suscessfully.",
+      //  });
+
+      //  router.push(`/startup/${reuslt._id}`);
+      //}
+
+      //return result;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors = error.flatten().fieldErrors;
+
+        setErrors(fieldErrors as unknown as Record<string, string>);
+
+        toast({
+          title: "Error",
+          description: "Please check your inputs and try again.",
+          variant: "destructive",
+        });
+
+        return { ...prevState, error: "Validation failed", status: "ERROR" };
+      }
+      toast({
+        title: "Error",
+        description: "Please check your inputs and try again.",
+        variant: "destructive",
+      });
+
+      return {
+        ...prevState,
+        error: "An unexpected error has occurred",
+        status: "ERROR",
+      };
+    }
+  };
+  const [state, formAction, isPending] = useActionState(handleFormSubmit, {
+    error: "",
+    status: "INITIAL",
+  });
+
   return (
-    <form action={() => {}} className="startup-form">
+    <form action={formAction} className="startup-form">
       {/* Title */}
       <div>
         <label htmlFor="title" className="startup-form_label">
@@ -26,7 +90,7 @@ const StartupForm = () => {
           placeholder="Startup Title"
         />
 
-        {errors.title && <p className="startup-form_errors">{errors.title}</p>}
+        {errors.title && <p className="startup-form_error">{errors.title}</p>}
       </div>
 
       {/* Description */}
@@ -43,7 +107,7 @@ const StartupForm = () => {
         />
 
         {errors.description && (
-          <p className="startup-form_errors">{errors.description}</p>
+          <p className="startup-form_error">{errors.description}</p>
         )}
       </div>
 
@@ -61,7 +125,7 @@ const StartupForm = () => {
         />
 
         {errors.category && (
-          <p className="startup-form_errors">{errors.category}</p>
+          <p className="startup-form_error">{errors.category}</p>
         )}
       </div>
 
@@ -78,7 +142,7 @@ const StartupForm = () => {
           placeholder="Startup Image URL"
         />
 
-        {errors.link && <p className="startup-form_errors">{errors.link}</p>}
+        {errors.link && <p className="startup-form_error">{errors.link}</p>}
       </div>
 
       {/* Pitch */}
@@ -102,9 +166,10 @@ const StartupForm = () => {
           }}
         />
 
-        {errors.pitch && <p className="startup-form_errors">{errors.pitch}</p>}
+        {errors.pitch && <p className="startup-form_error">{errors.pitch}</p>}
       </div>
 
+      {/* Button */}
       <Button
         type="submit"
         className="startup-form_btn text-white"
