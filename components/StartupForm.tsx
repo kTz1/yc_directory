@@ -9,6 +9,7 @@ import { formSchema } from "@/lib/validation";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { createPitch } from "@/lib/actions";
 
 const StartupForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -29,20 +30,18 @@ const StartupForm = () => {
       };
       // validate form values
       await formSchema.parseAsync(formValues);
-      console.log(formValues);
-      // const result = await createIdea(prevState, formDate, pitch)
-      //console.log(result);
+      const result = await createPitch(prevState, formData, pitch);
 
-      //if (result.status === "SUCCESS") {
-      //  toast({
-      //    title: "Success",
-      //    description: "Your startup pitch has created suscessfully.",
-      //  });
+      if (result.status == "SUCCESS") {
+        toast({
+          title: "Success",
+          description: "Your startup pitch has created suscessfully.",
+        });
 
-      //  router.push(`/startup/${reuslt._id}`);
-      //}
+        router.push(`/startup/${result._id}`);
+      }
 
-      //return result;
+      return result;
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors = error.flatten().fieldErrors;
@@ -57,6 +56,7 @@ const StartupForm = () => {
 
         return { ...prevState, error: "Validation failed", status: "ERROR" };
       }
+
       toast({
         title: "Error",
         description: "Please check your inputs and try again.",
@@ -70,6 +70,7 @@ const StartupForm = () => {
       };
     }
   };
+
   const [state, formAction, isPending] = useActionState(handleFormSubmit, {
     error: "",
     status: "INITIAL",
