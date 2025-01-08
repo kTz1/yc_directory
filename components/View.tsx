@@ -2,7 +2,6 @@ import Ping from "@/components/Ping";
 import { client } from "@/sanity/lib/client";
 import { STARTUP_VIEWS_QUERY } from "@/sanity/lib/queries";
 import { writeClient } from "@/sanity/lib/write-client";
-import { unstable_after as after } from "next/server";
 
 const View = async ({ id }: { id: string }) => {
   const { views: totalViews } = await client
@@ -11,13 +10,13 @@ const View = async ({ id }: { id: string }) => {
 
   // Update the number of views in the background
   after(
-    async () =>
+    (async () => {
       await writeClient
         .patch(id)
         .set({ views: totalViews + 1 })
-        .commit()
+        .commit();
+    })()
   );
-
   return (
     <div className="view-container">
       <div className="absolute -top-2 -right-2">
@@ -32,3 +31,8 @@ const View = async ({ id }: { id: string }) => {
 };
 
 export default View;
+function after(promise: Promise<void>) {
+  promise.catch((error) => {
+    console.error("Failed to update views:", error);
+  });
+}
