@@ -42,7 +42,7 @@ Make sure you have the following installed on your machine:
 **Cloning the Repository**
 
 ```bash
-git clone https://https://github.com/kTz1/yc_directory
+git clone https://github.com/kTz1/yc_directory
 cd yc_directory
 ```
 
